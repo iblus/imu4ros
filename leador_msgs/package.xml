@@ -1,0 +1,24 @@
+<package>
+  <name>leador_msgs</name>
+  <version>1.12.5</version>
+  <description>
+    leador_msgs provides messages for IMU
+  </description>
+  <maintainer email="fun@leador.com.cn">fun</maintainer>
+  <license>BSD</license>
+
+  <url>http://www.leador.com.cn</url>
+  <author>fun</author>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>message_generation</build_depend>
+  <build_depend>std_msgs</build_depend>
+
+  <run_depend>message_runtime</run_depend>
+  <run_depend>std_msgs</run_depend>
+
+  <export>
+    <architecture_independent/>
+  </export>
+</package>

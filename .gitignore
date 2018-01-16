@@ -1,0 +1,20 @@
+__pycache__/*
+.idea
+.vscode
+temp
+*_out
+
+# Python编译文件
+*.pyc
+*.pyo
+
+# 其他文件
+*.dump
+*.bak
+*.out
+*.o
+*.zip
+
+!.gitignore
+
+
