@@ -3,12 +3,12 @@
 
 typedef struct loop_queue
 {
-	#define LOOP_QUEUE_LEN					1024
-	#define LOOP_QUEUE_MASK 				(LOOP_QUEUE_LEN - 1)
+#define LOOP_QUEUE_LEN					1024
+#define LOOP_QUEUE_MASK 				(LOOP_QUEUE_LEN - 1)
 
-	char data[LOOP_QUEUE_LEN];	/*the data queue*/
-	volatile unsigned short front;					/*the position of first added item, which can be used to read next item*/
-	volatile unsigned short rear;					/*the position of newly added item*/	
+    char data[LOOP_QUEUE_LEN];	/*the data queue*/
+    volatile unsigned short front;					/*the position of first added item, which can be used to read next item*/
+    volatile unsigned short rear;					/*the position of newly added item*/
 } LOOP_QUEUE;		/* the loop queue for store the status report */
 
 extern void initialize_loop_queue(LOOP_QUEUE *loopQueue);

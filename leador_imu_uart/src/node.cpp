@@ -33,42 +33,50 @@
  *********************************************************************/
 
 // ROS
-#include <ros/ros.h>
 #include "imu.h"
+#include <ros/ros.h>
 
-int main(int argc, char **argv)
-{
-  ros::init(argc, argv, "leador_imu");
-  
-  ros::NodeHandle priv_nh("~");
+int main(int argc, char **argv) {
+    ros::init(argc, argv, "leador_imu");
 
-  std::string interface = "/dev/tty0";
-  priv_nh.getParam("com", interface);
+    ros::NodeHandle priv_nh("~");
 
-  if (interface.length()) {
-    ROS_INFO("Preparing to open COM :%s for packets from imu", interface.c_str());
-  } else {
-    ROS_INFO("Preparing to open default COM :%s for packets from imu", interface.c_str());
-  }
-
-  //========================
-  ros::Rate loop_rate(10);
-  int count =0 ;
-  if (!initIMU(interface.c_str())) {
-    // Loop until shutdown
-    while (ros::ok()) {
-
-      ROS_INFO("run ..%d",count);
-      // Handle callbacks
-      ros::spinOnce();
-      loop_rate.sleep();
-      count++;
+    if (argc < 3) {
+        ROS_INFO("No com to use!!!");
+        ros::WallDuration(1.0).sleep();
+    }
+    std::string naviInterface = argv[1];
+    if (naviInterface.length()) {
+        ROS_INFO("Use %s for recive data from imu", naviInterface.c_str());
+    } else {
+        ROS_FATAL("Failed to open COM");
+        ros::WallDuration(1.0).sleep();
+    }
+    std::string imuInterface = argv[2];
+    if (imuInterface.length()) {
+        ROS_INFO("Use %s for recive data from imu", imuInterface.c_str());
+    } else {
+        ROS_FATAL("Failed to open COM");
+        ros::WallDuration(1.0).sleep();
     }
 
-  } else {
-    ROS_FATAL("Failed to open socket");
-    ros::WallDuration(1.0).sleep();
-  }
+    //========================
+    ros::Rate loop_rate(0.1);
+    int count = 0;
+    if (!initSystem(naviInterface.c_str(), imuInterface.c_str())) {
+        // Loop until shutdown
+        while (ros::ok()) {
 
-  return 0;
+            ROS_INFO("run ..%d", count);
+            // Handle callbacks
+            ros::spinOnce();
+            loop_rate.sleep();
+            count++;
+        }
+
+    } else {
+        ROS_FATAL("Failed to open COM");
+        ros::WallDuration(1.0).sleep();
+    }
+    return 0;
 }
