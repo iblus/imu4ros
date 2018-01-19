@@ -1,1 +1,1 @@
-int8[72] data
+int8[58] data

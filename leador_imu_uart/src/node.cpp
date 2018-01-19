@@ -62,8 +62,9 @@ int main(int argc, char **argv) {
 
     //========================
     ros::Rate loop_rate(0.1);
+    ros::NodeHandle node;
     int count = 0;
-    if (!initSystem(naviInterface.c_str(), imuInterface.c_str())) {
+    if (!initSystem(naviInterface.c_str(), imuInterface.c_str(), node)) {
         // Loop until shutdown
         while (ros::ok()) {
 

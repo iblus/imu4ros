@@ -61,7 +61,6 @@ typedef struct _tty_opt {
 static int IsRun = 1;
 static TTYOPT daoHang;
 static TTYOPT imuOpt;
-ros::NodeHandle node;
 
 static void *tty_receive_pthread(void *arg) {
     int i = 0;
@@ -173,6 +172,28 @@ static int init_tty(TTYOPT *ttyOpt) {
     return 0;
 }
 
+// XOR check
+// return 0--success 1--errer
+static unsigned char checkXor(unsigned char *data, int len) {
+    unsigned int checksum = 0;
+    int i;
+    unsigned char ret = 0;
+    for (i = 0; i < len; i++) {
+        checksum = checksum ^ data[i];
+    }
+    ret = (unsigned char)(checksum & 0xFF);
+    return ret;
+}
+static unsigned char Navi_checkXor(NAVI data) {
+    unsigned char *p = (unsigned char *)&data;
+    unsigned char ret = checkXor(p, 57);
+    return ret;
+}
+static unsigned char Imu_checkXor(IMU data) {
+    unsigned char *p = (unsigned char *)&data;
+    unsigned char ret = checkXor((p + 1), 41);
+    return ret;
+}
 // deal with navigation's data
 static int dealNavi(void *arg) {
     TTYOPT *ttyOpt = (TTYOPT *)arg;
@@ -181,31 +202,47 @@ static int dealNavi(void *arg) {
     FILE *saveFp = ttyOpt->saveFp;
     LOOP_QUEUE *CommandQueue = &(ttyOpt->ttyQueue);
     char buf[PROCESS_SIZE];
-    unsigned char head[2];
+    unsigned char head[3];
     leador_msgs::NaviMsg msg_navi;
     NAVI bufNavi;
 
     LOCK(ttyOpt->queueLock);
     if (loop_queue_avaliable_items_count(CommandQueue) >= FramLen) {
 
-        loop_queue_out_preview(CommandQueue, (char*)head, sizeof(head));
-        if(head[0]==0x55)
-        {
-            loop_queue_out(CommandQueue, buf, FramLen);
-            UNLOCK(ttyOpt->queueLock);
+        loop_queue_out_preview(CommandQueue, (char *)head, sizeof(head));
+
+        #if 1 //just for test
+        printf("Navi %x %x %x\n", head[0], head[1], head[2]);
+        memcpy(&(msg_navi.data), head, FramLen);
+        ttyOpt->pub.publish(msg_navi);
+        #endif
+
+        if ((head[0] == 0xBD) && (head[1] == 0xDB) && (head[2] == 0x0B)) {
+            loop_queue_out(CommandQueue, (char *)(&bufNavi), FramLen);
+
             // send msg
-            memcpy(&bufNavi, buf, sizeof(NAVI));
-            memcpy(&(msg_navi.data), &bufNavi, sizeof(NAVI));
+            if (bufNavi.check != Navi_checkXor(bufNavi)) {
+                printf("Navi check error!\n");
+                initialize_loop_queue(CommandQueue);
+                UNLOCK(ttyOpt->queueLock);
+                return -1;
+            }
+            UNLOCK(ttyOpt->queueLock);
+
+            memcpy(&(msg_navi.data), &bufNavi, FramLen);
             ttyOpt->pub.publish(msg_navi);
             printf("Send %s Data...\n", ttyOpt->name);
 
             //===
             if (saveFp != NULL) {
-                fwrite(buf, sizeof(buf), 1, saveFp);
+                fwrite(&bufNavi, sizeof(bufNavi), 1, saveFp);
                 fflush(saveFp);
                 // printf("save tty data to file:%s\n", ttyOpt->savePath);
             }
 
+        } else {
+            loop_queue_out(CommandQueue, (char *)head, sizeof(char));
+            UNLOCK(ttyOpt->queueLock);
         }
         ttyOpt->isOut = 1;
         ttyOpt->timeOut = 0;
@@ -216,6 +253,7 @@ static int dealNavi(void *arg) {
         }
     }
     UNLOCK(ttyOpt->queueLock);
+    return 0;
 }
 
 // deal with IMU's data
@@ -225,32 +263,47 @@ static int dealIMU(void *arg) {
     int FramLen = ttyOpt->perLen;
     FILE *saveFp = ttyOpt->saveFp;
     LOOP_QUEUE *CommandQueue = &(ttyOpt->ttyQueue);
-    char buf[PROCESS_SIZE];
-    unsigned char head[2];
+    unsigned char head[sizeof(IMU)];
     leador_msgs::ImuMsg msg_imu;
     IMU bufImu;
 
     LOCK(ttyOpt->queueLock);
     if (loop_queue_avaliable_items_count(CommandQueue) >= FramLen) {
 
-        loop_queue_out_preview(CommandQueue, (char*)head, sizeof(head));
-        if(head[0]==0x55)
-        {
-            loop_queue_out(CommandQueue, buf, FramLen);
-            UNLOCK(ttyOpt->queueLock);
+        loop_queue_out_preview(CommandQueue, (char *)head, sizeof(head));
+
+        #if 1 //just for test
+        printf("Imu %x %x %x\n", head[0], head[1], head[2]);
+        memcpy(&(msg_imu.data), head, FramLen);
+        ttyOpt->pub.publish(msg_imu);
+        #endif
+
+        if ((head[0] == 0xAA) && (head[sizeof(head) - 1] == 0xAC)) {
+            loop_queue_out(CommandQueue, (char *)(&bufImu), FramLen);
+
             // send msg
-            memcpy(&bufImu, buf, sizeof(IMU));
-            memcpy(&(msg_imu.data), &bufImu, sizeof(IMU));
+            if (bufImu.check != Imu_checkXor(bufImu)) {
+                printf("IMU check error!\n");
+                initialize_loop_queue(CommandQueue);
+                UNLOCK(ttyOpt->queueLock);
+                return -1;
+            }
+            UNLOCK(ttyOpt->queueLock);
+
+            memcpy(&(msg_imu.data), &bufImu, FramLen);
             ttyOpt->pub.publish(msg_imu);
             printf("Send %s Data...\n", ttyOpt->name);
 
             //===
             if (saveFp != NULL) {
-                fwrite(buf, sizeof(buf), 1, saveFp);
+                fwrite(&bufImu, sizeof(bufImu), 1, saveFp);
                 fflush(saveFp);
                 // printf("save tty data to file:%s\n", ttyOpt->savePath);
             }
 
+        } else {
+            loop_queue_out(CommandQueue, (char *)head, sizeof(char));
+            UNLOCK(ttyOpt->queueLock);
         }
         ttyOpt->isOut = 1;
         ttyOpt->timeOut = 0;
@@ -261,10 +314,10 @@ static int dealIMU(void *arg) {
         }
     }
     UNLOCK(ttyOpt->queueLock);
+    return 0;
 }
 // init navigation publish
-static int initNavi(const char *com)
-{
+static int initNavi(const char *com,  ros::NodeHandle &node) {
     IsRun = 1;
 
     if (com != NULL) {
@@ -274,12 +327,12 @@ static int initNavi(const char *com)
     }
     printf("the com:%s\n", daoHang.ttyPath);
 
-    daoHang.baud = 9600;
+    daoHang.baud = 115200;
     daoHang.savePath = "./nav.bin";
     daoHang.name = "navigation";
     daoHang.timeOut = 0;
     daoHang.fun = dealNavi;
-    daoHang.perLen = sizeof(IMU);
+    daoHang.perLen = 3;//sizeof(NAVI);
     //==================
 
     daoHang.pub = node.advertise<leador_msgs::NaviMsg>("navi/data", 2);
@@ -292,7 +345,7 @@ static int initNavi(const char *com)
     return 0;
 }
 // init IMU publish
-static int initIMU(const char *com) {
+static int initIMU(const char *com, ros::NodeHandle &node) {
     IsRun = 1;
 
     if (com != NULL) {
@@ -302,12 +355,12 @@ static int initIMU(const char *com) {
     }
     printf("the com:%s\n", imuOpt.ttyPath);
 
-    imuOpt.baud = 9600;
+    imuOpt.baud = 115200;
     imuOpt.savePath = "./imu.bin";
     imuOpt.name = "imu";
     imuOpt.timeOut = 0;
     imuOpt.fun = dealIMU;
-    imuOpt.perLen = sizeof(IMU);
+    imuOpt.perLen = 3;//sizeof(IMU);
     //==================
     imuOpt.pub = node.advertise<leador_msgs::ImuMsg>("imu/data", 2);
     //==================
@@ -332,21 +385,19 @@ static int stopPublish(TTYOPT *_ttyOpt) {
     printf("exit pthread %s\n", _ttyOpt->name);
     return 0;
 }
-void stopSystem(void)
-{
+
+void stopSystem(void) {
     stopPublish(&imuOpt);
     stopPublish(&daoHang);
     return;
 }
-int initSystem(const char *naviCom, const char *imuCom)
-{
-    if(initNavi(naviCom))
-    {
+
+int initSystem(const char *naviCom, const char *imuCom,  ros::NodeHandle &node) {
+    if (initNavi(naviCom, node)) {
         printf("init Navi fail\n");
         return 1;
     }
-    if(initIMU(imuCom))
-    {
+    if (initIMU(imuCom, node)) {
         printf("init IMU fail\n");
         return 1;
     }

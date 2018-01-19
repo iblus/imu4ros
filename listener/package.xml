@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>leador_imu_listener</name>
+  <version>0.0.1</version>
+  <description>
+    Uart interface to Leador IMU receivers
+  </description>
+
+  <license>BSD</license>
+  <author email="fun@leador.com.cn">fun</author>
+  <maintainer email="fun@leador.com.cn">fun</maintainer>
+  <url type="website">http://www.leador.com.cn</url>
+  <url type="repository">http://www.leador.com.cn</url>
+  <url type="bugtracker">http://www.leador.com.cn</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>leador_msgs</depend>
+
+
+</package>
