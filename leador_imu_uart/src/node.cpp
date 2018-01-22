@@ -36,26 +36,34 @@
 #include "imu.h"
 #include <ros/ros.h>
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     ros::init(argc, argv, "leador_imu");
 
     ros::NodeHandle priv_nh("~");
 
-    if (argc < 3) {
+    if (argc < 3)
+    {
         ROS_INFO("No com to use!!!");
         ros::WallDuration(1.0).sleep();
     }
     std::string naviInterface = argv[1];
-    if (naviInterface.length()) {
+    if (naviInterface.length())
+    {
         ROS_INFO("Use %s for recive data from imu", naviInterface.c_str());
-    } else {
+    }
+    else
+    {
         ROS_FATAL("Failed to open COM");
         ros::WallDuration(1.0).sleep();
     }
     std::string imuInterface = argv[2];
-    if (imuInterface.length()) {
+    if (imuInterface.length())
+    {
         ROS_INFO("Use %s for recive data from imu", imuInterface.c_str());
-    } else {
+    }
+    else
+    {
         ROS_FATAL("Failed to open COM");
         ros::WallDuration(1.0).sleep();
     }
@@ -64,9 +72,11 @@ int main(int argc, char **argv) {
     ros::Rate loop_rate(0.1);
     ros::NodeHandle node;
     int count = 0;
-    if (!initSystem(naviInterface.c_str(), imuInterface.c_str(), node)) {
+    if (!initSystem(naviInterface.c_str(), imuInterface.c_str(), node))
+    {
         // Loop until shutdown
-        while (ros::ok()) {
+        while (ros::ok())
+        {
 
             ROS_INFO("run ..%d", count);
             // Handle callbacks
@@ -74,8 +84,9 @@ int main(int argc, char **argv) {
             loop_rate.sleep();
             count++;
         }
-
-    } else {
+    }
+    else
+    {
         ROS_FATAL("Failed to open COM");
         ros::WallDuration(1.0).sleep();
     }

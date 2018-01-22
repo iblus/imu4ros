@@ -12,7 +12,7 @@
 #include "uart.h"
 
 static int const baudRateTable[] = {B115200, B57600, B38400, B19200, B9600, B4800, B2400, B1200, B300};
-static int const baudRateMap[] = {115200, 57600, 38400,  19200,  9600, 4800, 2400, 1200,  300};
+static int const baudRateMap[] = {115200, 57600, 38400, 19200, 9600, 4800, 2400, 1200, 300};
 
 /****************************************************************
 Return value:	 	None
@@ -22,9 +22,9 @@ static void setup_port(int fd, int baudRate, int dataBits, int parity, int stopB
     int i;
     struct termios opt;
 
-    for (i = 0; i < sizeof(baudRateMap)/sizeof(baudRateMap[0]); i ++)
+    for (i = 0; i < sizeof(baudRateMap) / sizeof(baudRateMap[0]); i++)
     {
-        if(baudRate == baudRateMap[i])
+        if (baudRate == baudRateMap[i])
             baudRate = baudRateTable[i];
     }
 
@@ -36,16 +36,16 @@ static void setup_port(int fd, int baudRate, int dataBits, int parity, int stopB
 
     switch (parity)
     {
-    case 1:   // Odd parity
+    case 1: // Odd parity
         opt.c_cflag |= (PARENB | PARODD);
         break;
 
-    case 2:   // Even parity
+    case 2: // Even parity
         opt.c_cflag |= PARENB;
         opt.c_cflag &= ~(PARODD);
         break;
 
-    case 0:   // None parity
+    case 0: // None parity
     default:
         opt.c_cflag &= ~(PARENB);
         break;
@@ -55,11 +55,11 @@ static void setup_port(int fd, int baudRate, int dataBits, int parity, int stopB
     // Set stopbits
     switch (stopBits)
     {
-    case 2:   // 2 stopbits
+    case 2: // 2 stopbits
         opt.c_cflag |= CSTOPB;
         break;
 
-    case 1:   // 1 stopbits
+    case 1: // 1 stopbits
     default:
         opt.c_cflag &= ~CSTOPB;
         break;
@@ -88,16 +88,16 @@ static void setup_port(int fd, int baudRate, int dataBits, int parity, int stopB
     }
     //opt.c_cflag |= CS8;
 
-    opt.c_cflag &= ~CRTSCTS; //no flow control
+    opt.c_cflag &= ~CRTSCTS;                                 //no flow control
     opt.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG | IEXTEN); //raw mode, not canonical mode
-    opt.c_oflag &= ~(OPOST |ONLCR |OCRNL | ONOCR | ONLRET);
-    opt.c_iflag &= ~(IGNBRK|BRKINT|IGNPAR|PARMRK|INPCK|ISTRIP|INLCR|IGNCR|ICRNL|IUCLC|IXON|IXOFF|IXANY);
+    opt.c_oflag &= ~(OPOST | ONLCR | OCRNL | ONOCR | ONLRET);
+    opt.c_iflag &= ~(IGNBRK | BRKINT | IGNPAR | PARMRK | INPCK | ISTRIP | INLCR | IGNCR | ICRNL | IUCLC | IXON | IXOFF | IXANY);
 
     opt.c_cc[VTIME] = 0;
     opt.c_cc[VMIN] = 0;
 
     tcsetattr(fd, TCSANOW, &opt);
-    tcflush(fd, TCIOFLUSH);		//Flushes the input and/or output queue
+    tcflush(fd, TCIOFLUSH); //Flushes the input and/or output queue
 
     return;
 }
@@ -106,13 +106,13 @@ static void setup2_port(int fd, int baudRate, int dataBits, int parity, int stop
     int i;
     struct termios opt;
 
-    for (i = 0; i < sizeof(baudRateMap)/sizeof(baudRateMap[0]); i ++)
+    for (i = 0; i < sizeof(baudRateMap) / sizeof(baudRateMap[0]); i++)
     {
-        if(baudRate == baudRateMap[i])
+        if (baudRate == baudRateMap[i])
             baudRate = baudRateTable[i];
     }
 
-    if(tcgetattr(fd, &opt)!=0)
+    if (tcgetattr(fd, &opt) != 0)
     {
         printf("tcgetattr err");
     }
@@ -121,7 +121,7 @@ static void setup2_port(int fd, int baudRate, int dataBits, int parity, int stop
     cfsetispeed(&opt, baudRate);
     cfsetospeed(&opt, baudRate);
 
-    tcsetattr(fd, TCSANOW,&opt);
+    tcsetattr(fd, TCSANOW, &opt);
 
     opt.c_cflag &= ~CSIZE;
     switch (dataBits)
@@ -148,18 +148,18 @@ static void setup2_port(int fd, int baudRate, int dataBits, int parity, int stop
 
     switch (parity)
     {
-    case 1:   // Odd parity
+    case 1: // Odd parity
         opt.c_cflag |= (PARENB | PARODD);
         break;
 
-    case 2:   // Even parity
+    case 2: // Even parity
         opt.c_cflag |= PARENB;
         opt.c_cflag &= ~(PARODD);
         break;
 
-    case 0:   // None parity
+    case 0: // None parity
     default:
-        opt.c_cflag &= ~(PARENB|PARODD);
+        opt.c_cflag &= ~(PARENB | PARODD);
         break;
     }
     opt.c_cflag &= ~CRTSCTS;
@@ -167,11 +167,11 @@ static void setup2_port(int fd, int baudRate, int dataBits, int parity, int stop
     // Set stopbits
     switch (stopBits)
     {
-    case 2:   // 2 stopbits
+    case 2: // 2 stopbits
         opt.c_cflag |= CSTOPB;
         break;
 
-    case 1:   // 1 stopbits
+    case 1: // 1 stopbits
     default:
         opt.c_cflag &= ~CSTOPB;
         break;
@@ -183,7 +183,7 @@ static void setup2_port(int fd, int baudRate, int dataBits, int parity, int stop
     tcsetattr(fd, TCSANOW, &opt);
 
     opt.c_iflag |= IGNPAR;
-    opt.c_lflag &= ~( ICANON | ECHO | ISIG | IEXTEN | ECHOE );
+    opt.c_lflag &= ~(ICANON | ECHO | ISIG | IEXTEN | ECHOE);
     opt.c_iflag &= ~INPCK;
     opt.c_iflag &= ~ICRNL;
     opt.c_iflag &= ~INLCR;
@@ -193,11 +193,11 @@ static void setup2_port(int fd, int baudRate, int dataBits, int parity, int stop
 
     opt.c_oflag &= ~OPOST;
 
-    if(tcsetattr(fd, TCSANOW, &opt))
+    if (tcsetattr(fd, TCSANOW, &opt))
     {
         printf("tcsetattr() failed\n");
     }
-    tcflush(fd, TCIOFLUSH);		//Flushes the input and/or output queue
+    tcflush(fd, TCIOFLUSH); //Flushes the input and/or output queue
 
     return;
 }
@@ -218,9 +218,7 @@ int uart_init(char *deviceName, int baudRate, int dataBits, int parity, int stop
     {
         //tcflush(uartFd, TCIOFLUSH);
         setup_port(uartFd, baudRate, dataBits, parity, stopBits);
-
     }
 
     return uartFd;
 }
-

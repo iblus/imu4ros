@@ -34,14 +34,13 @@
  * This tutorial demonstrates simple receipt of messages over the ROS system.
  */
 // %Tag(CALLBACK)%
-void imuCallback(const leador_msgs::ImuMsg& msg)
+void imuCallback(const leador_msgs::ImuMsg &msg)
 {
   ROS_INFO("Imu heard: [%x]", msg.data[0]);
   //printf("Imu listerner ::%s\n",msg->data.c_str());
-
 }
 
-void naviCallback(const leador_msgs::NaviMsg& msg)
+void naviCallback(const leador_msgs::NaviMsg &msg)
 {
   ROS_INFO("Navi heard: [%x]", msg.data[0]);
   //printf("Navi listerner ::%s\n",msg->data.c_str());
@@ -84,19 +83,19 @@ int main(int argc, char **argv)
    * is the number of messages that will be buffered up before beginning to throw
    * away the oldest ones.
    */
-// %Tag(SUBSCRIBER)%
+  // %Tag(SUBSCRIBER)%
   ros::Subscriber sub_imu = n.subscribe("imu/data", 5, imuCallback);
   ros::Subscriber sub_navi = n.subscribe("navi/data", 5, naviCallback);
-// %EndTag(SUBSCRIBER)%
+  // %EndTag(SUBSCRIBER)%
 
   /**
    * ros::spin() will enter a loop, pumping callbacks.  With this version, all
    * callbacks will be called from within this thread (the main one).  ros::spin()
    * will exit when Ctrl-C is pressed, or the node is shutdown by the master.
    */
-// %Tag(SPIN)%
+  // %Tag(SPIN)%
   ros::spin();
-// %EndTag(SPIN)%
+  // %EndTag(SPIN)%
 
   return 0;
 }
