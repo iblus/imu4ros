@@ -236,7 +236,7 @@ static int dealNavi(void *arg)
 
         loop_queue_out_preview(CommandQueue, (char *)head, sizeof(head));
 
-#if 1 // just for test
+#if 0 // just for test
         printf("Navi %x %x %x\n", head[0], head[1], head[2]);
         memcpy(&(msg_navi.data), head, FramLen);
         ttyOpt->pub.publish(msg_navi);
@@ -306,7 +306,7 @@ static int dealIMU(void *arg)
 
         loop_queue_out_preview(CommandQueue, (char *)head, sizeof(head));
 
-#if 1 // just for test
+#if 0 // just for test
         printf("Imu %x %x %x\n", head[0], head[1], head[2]);
         memcpy(&(msg_imu.data), head, FramLen);
         ttyOpt->pub.publish(msg_imu);
@@ -377,7 +377,7 @@ static int initNavi(const char *com, ros::NodeHandle &node)
     daoHang.name = "navigation";
     daoHang.timeOut = 0;
     daoHang.fun = dealNavi;
-    daoHang.perLen = 3; // sizeof(NAVI);
+    daoHang.perLen = sizeof(NAVI);
     //==================
 
     daoHang.pub = node.advertise<leador_msgs::NaviMsg>("navi/data", 2);
@@ -410,7 +410,7 @@ static int initIMU(const char *com, ros::NodeHandle &node)
     imuOpt.name = "imu";
     imuOpt.timeOut = 0;
     imuOpt.fun = dealIMU;
-    imuOpt.perLen = 3; // sizeof(IMU);
+    imuOpt.perLen = sizeof(IMU);
     //==================
     imuOpt.pub = node.advertise<leador_msgs::ImuMsg>("imu/data", 2);
     //==================

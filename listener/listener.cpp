@@ -30,22 +30,61 @@
 #include <leador_msgs/ImuMsg.h>
 #include <leador_msgs/NaviMsg.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "imu.h"
 /**
  * This tutorial demonstrates simple receipt of messages over the ROS system.
  */
-// %Tag(CALLBACK)%
+static void msgToImu(const leador_msgs::ImuMsg &msg, IMU_D *imu)
+{
+  int i=0;
+  uint8_t *data = (uint8_t*)imu;
+  memset(data, 0, sizeof(IMU_D));
+  for(i=0;i<sizeof(IMU_D);i++)
+  {
+    data[i] = msg.data[i];
+  }
+  return;
+}
+
+static void msgToNavi(const leador_msgs::NaviMsg &msg, NAVI_D *navi)
+{
+  int i=0;
+  uint8_t *data = (uint8_t*)navi;
+  memset(data, 0, sizeof(NAVI_D));
+  for(i=0;i<sizeof(NAVI_D);i++)
+  {
+    data[i] = msg.data[i];
+  }
+  return;
+}
 void imuCallback(const leador_msgs::ImuMsg &msg)
 {
-  ROS_INFO("Imu heard: [%x]", msg.data[0]);
-  //printf("Imu listerner ::%s\n",msg->data.c_str());
+  IMU_D imu;
+  msgToImu(msg, &imu);
+  printf("imu:\n");
+  uint8_t* p = (uint8_t*)&imu;
+  for(int i=0;i<sizeof(IMU_D);i++)
+  {
+    printf("0x%x ",*p++);
+  }
+  printf("\n");  
 }
 
 void naviCallback(const leador_msgs::NaviMsg &msg)
 {
-  ROS_INFO("Navi heard: [%x]", msg.data[0]);
-  //printf("Navi listerner ::%s\n",msg->data.c_str());
+  NAVI_D navi;
+  msgToNavi(msg, &navi);
+  printf("navi:\n");
+  uint8_t* p = (uint8_t*)&navi;
+  for(int i=0;i<sizeof(NAVI_D);i++)
+  {
+    printf("0x%x ",*p++);
+  }
+  printf("\n");
 }
-// %EndTag(CALLBACK)%
 
 int main(int argc, char **argv)
 {

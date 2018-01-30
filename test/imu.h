@@ -1,9 +1,6 @@
 #ifndef __IMU_H__
 #define __IMU_H__
 #include <stdint.h>
-#include <ros/ros.h>
-extern void stopSystem(void);
-extern int initSystem(const char *, const char *, ros::NodeHandle &);
 
 #pragma pack(push, 1)
 typedef struct
