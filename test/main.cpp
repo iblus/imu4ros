@@ -18,13 +18,13 @@ static unsigned char checkXor(unsigned char *data, int len)
     ret = (unsigned char)(checksum & 0xFF);
     return ret;
 }
-static unsigned char Navi_checkXor(NAVI data)
+static unsigned char Navi_checkXor(NAVI_D data)
 {
     unsigned char *p = (unsigned char *)&data;
     unsigned char ret = checkXor(p, 57);
     return ret;
 }
-static unsigned char Imu_checkXor(IMU data)
+static unsigned char Imu_checkXor(IMU_D data)
 {
     unsigned char *p = (unsigned char *)&data;
     unsigned char ret = checkXor((p + 1), 41);
@@ -54,19 +54,28 @@ int save2file(const char* file, void* data, int len)
 
 int main(void)
 {
-    NAVI navi;
-    IMU imu;
-    memset(&navi, 0, sizeof(NAVI));
-    memset(&imu, 0, sizeof(IMU));
+    NAVI_D navi;
+    IMU_D imu;
+    memset(&navi, 0, sizeof(NAVI_D));
+    memset(&imu, 0, sizeof(IMU_D));
 
     navi.head[0] = 0xBD;
     navi.head[1] = 0xDB;
     navi.head[2] = 0x0B;
+    navi.hengGunJiao = 1;
+    navi.fuYangJiao = 2;
+    navi.fangWeiJiao = 3;
+    navi.gyro_x = 4;
+    navi.gyro_y = 5;
+    navi.gyro_z = 6;
+    navi.time = 555;
     navi.check = Navi_checkXor(navi);
 
     imu.head = 0xAA;
     imu.tail =0xAC;
-    imu.data[2] =0x55;
+    imu.gyro_x = 12.3;
+    imu.gyro_y = 23.4;
+    imu.gyro_z = 34.5;
     imu.check = Imu_checkXor(imu);
 
     save2file("navi.data", &navi, sizeof(NAVI));

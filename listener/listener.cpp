@@ -65,6 +65,9 @@ void imuCallback(const leador_msgs::ImuMsg &msg)
   IMU_D imu;
   msgToImu(msg, &imu);
   printf("imu:\n");
+  printf("imu.gyro_x=%.3f y=%.3f accel_x=%.3f\n",
+    imu.gyro_x,imu.gyro_y, imu.accel_x);
+
   uint8_t* p = (uint8_t*)&imu;
   for(int i=0;i<sizeof(IMU_D);i++)
   {
@@ -78,6 +81,8 @@ void naviCallback(const leador_msgs::NaviMsg &msg)
   NAVI_D navi;
   msgToNavi(msg, &navi);
   printf("navi:\n");
+  printf("navi.hengGunJiao=%d time=%d\n",
+    navi.hengGunJiao, navi.time);
   uint8_t* p = (uint8_t*)&navi;
   for(int i=0;i<sizeof(NAVI_D);i++)
   {
