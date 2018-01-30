@@ -53,7 +53,7 @@ typedef struct
     uint8_t type;
 
     uint8_t check;
-}NAVI_D;
+} NAVI_D;
 typedef struct
 {
     uint8_t head;
@@ -73,6 +73,6 @@ typedef struct
     uint8_t id;
     uint8_t check;
     uint8_t tail;
-}IMU_D;
+} IMU_D;
 #pragma pack(pop)
 #endif

@@ -105,8 +105,8 @@ static void *tty_receive_pthread(void *arg)
 #endif
 
                 if ((UartReadLen > 0) &&
-                    !loop_queue_is_full(
-                        CommandQueue)) // this fd has data ,so can recv it
+                        !loop_queue_is_full(
+                            CommandQueue)) // this fd has data ,so can recv it
                 {
                     LOCK(ttyOpt->queueLock);
                     loop_queue_in(CommandQueue, UartReadContent, UartReadLen);
