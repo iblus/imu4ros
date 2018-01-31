@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
     ros::NodeHandle priv_nh("~");
 
-    if (argc < 3)
+    if (argc < 2)
     {
         ROS_INFO("No com to use!!!");
         ros::WallDuration(1.0).sleep();
@@ -57,22 +57,12 @@ int main(int argc, char **argv)
         ROS_FATAL("Failed to open COM");
         ros::WallDuration(1.0).sleep();
     }
-    std::string imuInterface = argv[2];
-    if (imuInterface.length())
-    {
-        ROS_INFO("Use %s for recive data from imu", imuInterface.c_str());
-    }
-    else
-    {
-        ROS_FATAL("Failed to open COM");
-        ros::WallDuration(1.0).sleep();
-    }
 
     //========================
     ros::Rate loop_rate(0.1);
     ros::NodeHandle node;
     int count = 0;
-    if (!initSystem(naviInterface.c_str(), imuInterface.c_str(), node))
+    if (!initSystem(naviInterface.c_str(), node))
     {
         // Loop until shutdown
         while (ros::ok())

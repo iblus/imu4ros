@@ -3,13 +3,7 @@
 #include <stdint.h>
 
 #pragma pack(push, 1)
-typedef struct
-{
-    uint8_t head; //head of IMU , 0xAA
-    uint8_t data[41];
-    uint8_t check; //check bit of IMU,Byte 2-42 XOR
-    uint8_t tail;  //tail of IMU, 0xAC
-} IMU;
+
 typedef struct
 {
     uint8_t head[3]; //head of NAVI, 0xBD,0xDB,0x0B
@@ -51,25 +45,5 @@ typedef struct
 
     uint8_t check;
 } NAVI_D;
-typedef struct
-{
-    uint8_t head;
-    uint8_t gps_week[2];
-    uint8_t gps_second[8];
-
-    float gyro_x;
-    float gyro_y;
-    float gyro_z;
-    float accel_x;
-    float accel_y;
-    float accel_z;
-
-    int16_t temp;
-
-    uint8_t reserved[4];
-    uint8_t id;
-    uint8_t check;
-    uint8_t tail;
-} IMU_D;
 #pragma pack(pop)
 #endif
