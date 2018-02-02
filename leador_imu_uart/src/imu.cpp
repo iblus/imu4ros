@@ -380,7 +380,7 @@ static int initNavi(const char *com, ros::NodeHandle &node)
     daoHang.perLen = sizeof(NAVI);
     //==================
 
-    daoHang.pub = node.advertise<leador_msgs::NaviMsg>("navi/data", 2);
+    daoHang.pub = node.advertise<leador_msgs::NaviMsg>("navi_leador/data", 2);
     //==================
 
     if (init_tty(&daoHang) != 0)
@@ -412,7 +412,7 @@ static int initIMU(const char *com, ros::NodeHandle &node)
     imuOpt.fun = dealIMU;
     imuOpt.perLen = sizeof(IMU);
     //==================
-    imuOpt.pub = node.advertise<leador_msgs::ImuMsg>("imu/data", 2);
+    imuOpt.pub = node.advertise<leador_msgs::ImuMsg>("imu_leador/data", 2);
     //==================
 
     if (init_tty(&imuOpt) != 0)

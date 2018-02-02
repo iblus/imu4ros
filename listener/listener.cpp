@@ -68,6 +68,8 @@ void imuCallback(const leador_msgs::ImuMsg &msg)
     msgToImu(msg, &imu);
     
     Recive_imu_cun++;
+    if(Recive_imu_cun%125 !=0)
+    return;
     printf("imu:%d\n", Recive_imu_cun);
 
     //==========================
@@ -88,6 +90,8 @@ void naviCallback(const leador_msgs::NaviMsg &msg)
     msgToNavi(msg, &navi);
 
     Recive_navi_cun ++;
+    if(Recive_navi_cun%125 !=0)
+    return;
     printf("navi:%d\n",Recive_navi_cun);
     //==========================
     printf("navi.hengGunJiao=%d\n",navi.hengGunJiao);
@@ -158,8 +162,8 @@ int main(int argc, char **argv)
      * away the oldest ones.
      */
     // %Tag(SUBSCRIBER)%
-    ros::Subscriber sub_imu = n.subscribe("imu/data", 5, imuCallback);
-    ros::Subscriber sub_navi = n.subscribe("navi/data", 5, naviCallback);
+    ros::Subscriber sub_imu = n.subscribe("imu_leador/data", 5, imuCallback);
+    ros::Subscriber sub_navi = n.subscribe("navi_leador/data", 5, naviCallback);
     // %EndTag(SUBSCRIBER)%
 
     /**
