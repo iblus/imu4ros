@@ -60,14 +60,20 @@ static void msgToNavi(const leador_msgs::NaviMsg &msg, NAVI_D *navi)
     }
     return;
 }
+
+static int Recive_imu_cun = 0;
 void imuCallback(const leador_msgs::ImuMsg &msg)
 {
     IMU_D imu;
     msgToImu(msg, &imu);
-    printf("imu:\n");
-    printf("imu.gyro_x=%.3f y=%.3f accel_x=%.3f\n",
-           imu.gyro_x,imu.gyro_y, imu.accel_x);
+    
+    Recive_imu_cun++;
+    printf("imu:%d\n", Recive_imu_cun);
 
+    //==========================
+    printf("imu.gyro_x =%.5f y = %.5f z = %0.5f\n",imu.gyro_x,imu.gyro_y,imu.gyro_z);
+    printf("imu.accel_x=%.5f y=%.5f z=%.5f\n", imu.accel_x,imu.accel_y, imu.accel_y);
+    //==========================
     uint8_t* p = (uint8_t*)&imu;
     for(int i=0; i<sizeof(IMU_D); i++)
     {
@@ -75,14 +81,38 @@ void imuCallback(const leador_msgs::ImuMsg &msg)
     }
     printf("\n");
 }
-
+static int Recive_navi_cun =0;
 void naviCallback(const leador_msgs::NaviMsg &msg)
 {
     NAVI_D navi;
     msgToNavi(msg, &navi);
-    printf("navi:\n");
-    printf("navi.hengGunJiao=%d time=%d\n",
-           navi.hengGunJiao, navi.time);
+
+    Recive_navi_cun ++;
+    printf("navi:%d\n",Recive_navi_cun);
+    //==========================
+    printf("navi.hengGunJiao=%d\n",navi.hengGunJiao);
+    printf("navi.fuYangJiao=%d\n",navi.fuYangJiao);
+    printf("navi.fangWeiJiao=%d\n",navi.fangWeiJiao);
+
+    printf("navi.gyro_x=%d\n",navi.gyro_x);
+    printf("navi.gyro_y=%d\n",navi.gyro_y);
+    printf("navi.gyro_z=%d\n",navi.gyro_z);
+    printf("navi.accel_x=%d\n",navi.accel_x);
+    printf("navi.accel_y=%d\n",navi.accel_y);
+    printf("navi.accer_z=%d\n",navi.accer_z);
+
+    printf("navi.jingDu=%d\n",navi.jingDu);
+    printf("navi.weiDu=%d\n",navi.weiDu);
+    printf("navi.gaoDu=%d\n",navi.gaoDu);
+    printf("navi.bei_sudu=%d\n",navi.bei_sudu);
+    printf("navi.dong_sudo=%d\n",navi.dong_sudo);
+    printf("navi.di_sudo=%d\n",navi.di_sudo);
+
+    printf("navi.status=0x%x\n",navi.status);
+
+    printf("navi.time=%d\n",navi.time);
+    printf("navi.type=0x%x\n",navi.type);
+    //==========================
     uint8_t* p = (uint8_t*)&navi;
     for(int i=0; i<sizeof(NAVI_D); i++)
     {
