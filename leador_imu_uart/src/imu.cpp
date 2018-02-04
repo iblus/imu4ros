@@ -304,7 +304,7 @@ static int initNavi(const char *com, ros::NodeHandle &node)
     daoHang.perLen = sizeof(NAVI);
     //==================
 
-    daoHang.pub = node.advertise<leador_msgs::NaviMsg>("navi/data", 2);
+    daoHang.pub = node.advertise<leador_msgs::NaviMsg>("navi_leador/data", 2);
     //==================
 
     if (init_tty(&daoHang) != 0)

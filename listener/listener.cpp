@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "leador_listener");
     ros::NodeHandle n;
 
-    ros::Subscriber sub_navi = n.subscribe("navi/data", 5, naviCallback);
+    ros::Subscriber sub_navi = n.subscribe("navi_leador/data", 5, naviCallback);
 
     ros::spin();
     return 0;
