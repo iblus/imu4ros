@@ -4,6 +4,24 @@
 #include <malloc.h>
 #include <string.h>
 
+#include <time.h>
+
+//get system local time
+static void getTime(char*str, int len)
+{
+	time_t timep;
+	struct tm *p_lt;
+	time(&timep);
+	p_lt = localtime(&timep);
+
+	memset(str,0,len);
+
+	sprintf(str, "%d-%02d-%02d-%02d-%02d-%02d",
+			(1900+p_lt->tm_year), p_lt->tm_mon, p_lt->tm_mday,
+			p_lt->tm_hour, p_lt->tm_min, p_lt->tm_sec);
+	return;
+}
+
 // XOR check
 // return 0--success 1--errer
 static unsigned char checkXor(unsigned char *data, int len)
