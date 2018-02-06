@@ -32,11 +32,25 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include "imu.h"
-/**
- * This tutorial demonstrates simple receipt of messages over the ROS system.
- */
+
+//get system local time
+static void getTime(char*str, int len)
+{
+	time_t timep;
+	struct tm *p_lt;
+	time(&timep);
+	p_lt = localtime(&timep);
+
+	memset(str,0,len);
+
+	sprintf(str, "%d-%02d-%02d-%02d-%02d-%02d",
+			(1900+p_lt->tm_year), p_lt->tm_mon, p_lt->tm_mday,
+			p_lt->tm_hour, p_lt->tm_min, p_lt->tm_sec);
+	return;
+}
 static void msgToImu(const leador_msgs::ImuMsg &msg, IMU_D *imu)
 {
     int i=0;
@@ -62,6 +76,7 @@ static void msgToNavi(const leador_msgs::NaviMsg &msg, NAVI_D *navi)
 }
 
 static int Recive_imu_cun = 0;
+static  FILE *SaveImuFp = NULL;
 void imuCallback(const leador_msgs::ImuMsg &msg)
 {
     IMU_D imu;
@@ -75,6 +90,7 @@ void imuCallback(const leador_msgs::ImuMsg &msg)
     //==========================
     printf("imu.gyro_x =%.5f y = %.5f z = %0.5f\n",imu.gyro_x,imu.gyro_y,imu.gyro_z);
     printf("imu.accel_x=%.5f y=%.5f z=%.5f\n", imu.accel_x,imu.accel_y, imu.accel_y);
+
     //==========================
     uint8_t* p = (uint8_t*)&imu;
     for(int i=0; i<sizeof(IMU_D); i++)
@@ -82,8 +98,16 @@ void imuCallback(const leador_msgs::ImuMsg &msg)
         printf("0x%x ",*p++);
     }
     printf("\n");
+    
+    if(SaveImuFp !=NULL)
+    {
+        fwrite(&imu, sizeof(imu), 1, SaveImuFp);
+        fflush(SaveImuFp);
+    }
 }
+
 static int Recive_navi_cun =0;
+static  FILE *SaveNaviFp = NULL;
 void naviCallback(const leador_msgs::NaviMsg &msg)
 {
     NAVI_D navi;
@@ -123,6 +147,12 @@ void naviCallback(const leador_msgs::NaviMsg &msg)
         printf("0x%x ",*p++);
     }
     printf("\n");
+
+    if(SaveNaviFp !=NULL)
+    {
+        fwrite(&navi, sizeof(navi), 1, SaveNaviFp);
+        fflush(SaveNaviFp);
+    }
 }
 
 int main(int argc, char **argv)
@@ -146,6 +176,28 @@ int main(int argc, char **argv)
      */
     ros::NodeHandle n;
 
+//============================
+    char strTime[64];
+	getTime(strTime,sizeof(strTime));
+    char pathBuf[64];
+    memset(pathBuf, 0, sizeof(pathBuf));
+    sprintf(pathBuf, "%s.imu",strTime);
+
+    SaveImuFp = fopen(pathBuf, "wb");
+    if (SaveImuFp == NULL)
+    {
+        printf("create Imu file:%s fail!\n", pathBuf);
+    }
+    char pathBuf2[64];
+    memset(pathBuf2, 0, sizeof(pathBuf2));
+    sprintf(pathBuf2, "%s.navi",strTime);
+    SaveNaviFp = fopen(pathBuf2, "wb");
+    if (SaveNaviFp == NULL)
+    {
+        printf("create Navi file:%s fail!\n", pathBuf2);
+    }
+	printf("\n save navi to %s save imu to %s\n", pathBuf2, pathBuf);
+//=============================
     /**
      * The subscribe() call is how you tell ROS that you want to receive messages
      * on a given topic.  This invokes a call to the ROS
