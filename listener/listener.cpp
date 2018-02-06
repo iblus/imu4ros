@@ -31,10 +31,27 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <time.h>
 #include "imu.h"
 
+//get system local time
+static void getTime(char*str, int len)
+{
+	time_t timep;
+	struct tm *p_lt;
+	time(&timep);
+	p_lt = localtime(&timep);
+
+	memset(str,0,len);
+
+	sprintf(str, "%d-%02d-%02d-%02d-%02d-%02d",
+			(1900+p_lt->tm_year), p_lt->tm_mon, p_lt->tm_mday,
+			p_lt->tm_hour, p_lt->tm_min, p_lt->tm_sec);
+	return;
+}
+
 static int Recive_cun = 0;
+static  FILE *SaveNaviFp = NULL;
 static void msgToNavi(const leador_msgs::NaviMsg &msg, NAVI_D *navi)
 {
     int i=0;
@@ -83,12 +100,33 @@ void naviCallback(const leador_msgs::NaviMsg &msg)
         printf("0x%x ",*p++);
     }
     printf("\n");
+    if(SaveNaviFp !=NULL)
+    {
+        fwrite(&navi, sizeof(navi), 1, SaveNaviFp);
+        fflush(SaveNaviFp);
+    }
+
 }
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "leador_listener");
     ros::NodeHandle n;
+
+//============================
+    char strTime[64];
+	getTime(strTime,sizeof(strTime));
+
+    char pathBuf[64];
+    memset(pathBuf, 0, sizeof(pathBuf));
+    sprintf(pathBuf, "%s.navi",strTime);
+    SaveNaviFp = fopen(pathBuf, "wb");
+    if (SaveNaviFp == NULL)
+    {
+        printf("create Navi file:%s fail!\n", pathBuf);
+    }
+	printf("\n save navi to %s\n", pathBuf);
+//=============================
 
     ros::Subscriber sub_navi = n.subscribe("navi_leador/data", 5, naviCallback);
 
