@@ -369,6 +369,7 @@ static int initNavi(const char *com, ros::NodeHandle &node)
     }
     else
     {
+        return 2;
     }
     printf("the com:%s\n", daoHang.ttyPath);
 
@@ -402,6 +403,7 @@ static int initIMU(const char *com, ros::NodeHandle &node)
     }
     else
     {
+        return 2;
     }
     printf("the com:%s\n", imuOpt.ttyPath);
 
@@ -449,10 +451,19 @@ void stopSystem(void)
 
 int initSystem(const char *naviCom, const char *imuCom, ros::NodeHandle &node)
 {
+    if(!strlen(naviCom))
+    {
+        return 2;
+    }
     if (initNavi(naviCom, node))
     {
         printf("init Navi fail\n");
         return 1;
+    }
+
+    if(!strlen(imuCom))
+    {
+        return 0;
     }
     if (initIMU(imuCom, node))
     {

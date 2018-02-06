@@ -1,31 +1,3 @@
-/*
- * Copyright (C) 2008, Morgan Quigley and Willow Garage, Inc.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *   * Redistributions of source code must retain the above copyright notice,
- *     this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *   * Neither the names of Stanford University or Willow Garage, Inc. nor the names of its
- *     contributors may be used to endorse or promote products derived from
- *     this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- */
-
-// %Tag(FULLTEXT)%
 #include "ros/ros.h"
 #include <leador_msgs/ImuMsg.h>
 #include <leador_msgs/NaviMsg.h>
@@ -82,6 +54,13 @@ void imuCallback(const leador_msgs::ImuMsg &msg)
     IMU_D imu;
     msgToImu(msg, &imu);
     
+    //save data to file
+    if(SaveImuFp !=NULL)
+    {
+        fwrite(&imu, sizeof(imu), 1, SaveImuFp);
+        fflush(SaveImuFp);
+    }
+    
     Recive_imu_cun++;
     if(Recive_imu_cun%125 !=0)
     return;
@@ -98,12 +77,6 @@ void imuCallback(const leador_msgs::ImuMsg &msg)
         printf("0x%x ",*p++);
     }
     printf("\n");
-    
-    if(SaveImuFp !=NULL)
-    {
-        fwrite(&imu, sizeof(imu), 1, SaveImuFp);
-        fflush(SaveImuFp);
-    }
 }
 
 static int Recive_navi_cun =0;
@@ -112,6 +85,13 @@ void naviCallback(const leador_msgs::NaviMsg &msg)
 {
     NAVI_D navi;
     msgToNavi(msg, &navi);
+
+    // save data to file
+    if(SaveNaviFp !=NULL)
+    {
+        fwrite(&navi, sizeof(navi), 1, SaveNaviFp);
+        fflush(SaveNaviFp);
+    }
 
     Recive_navi_cun ++;
     if(Recive_navi_cun%125 !=0)
@@ -147,12 +127,6 @@ void naviCallback(const leador_msgs::NaviMsg &msg)
         printf("0x%x ",*p++);
     }
     printf("\n");
-
-    if(SaveNaviFp !=NULL)
-    {
-        fwrite(&navi, sizeof(navi), 1, SaveNaviFp);
-        fflush(SaveNaviFp);
-    }
 }
 
 int main(int argc, char **argv)
@@ -213,20 +187,15 @@ int main(int argc, char **argv)
      * is the number of messages that will be buffered up before beginning to throw
      * away the oldest ones.
      */
-    // %Tag(SUBSCRIBER)%
     ros::Subscriber sub_imu = n.subscribe("imu_leador/data", 5, imuCallback);
     ros::Subscriber sub_navi = n.subscribe("navi_leador/data", 5, naviCallback);
-    // %EndTag(SUBSCRIBER)%
 
     /**
      * ros::spin() will enter a loop, pumping callbacks.  With this version, all
      * callbacks will be called from within this thread (the main one).  ros::spin()
      * will exit when Ctrl-C is pressed, or the node is shutdown by the master.
      */
-    // %Tag(SPIN)%
     ros::spin();
-    // %EndTag(SPIN)%
 
     return 0;
 }
-// %EndTag(FULLTEXT)%
