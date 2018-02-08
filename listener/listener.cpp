@@ -5,23 +5,25 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <pthread.h>
 
 #include "imu.h"
+#include "uart.h"
 
 //get system local time
 static void getTime(char*str, int len)
 {
-	time_t timep;
-	struct tm *p_lt;
-	time(&timep);
-	p_lt = localtime(&timep);
+    time_t timep;
+    struct tm *p_lt;
+    time(&timep);
+    p_lt = localtime(&timep);
 
-	memset(str,0,len);
+    memset(str,0,len);
 
-	sprintf(str, "%d-%02d-%02d-%02d-%02d-%02d",
-			(1900+p_lt->tm_year), p_lt->tm_mon, p_lt->tm_mday,
-			p_lt->tm_hour, p_lt->tm_min, p_lt->tm_sec);
-	return;
+    sprintf(str, "%d-%02d-%02d-%02d-%02d-%02d",
+            (1900+p_lt->tm_year), p_lt->tm_mon, p_lt->tm_mday,
+            p_lt->tm_hour, p_lt->tm_min, p_lt->tm_sec);
+    return;
 }
 static void msgToImu(const leador_msgs::ImuMsg &msg, IMU_D *imu)
 {
@@ -53,17 +55,17 @@ void imuCallback(const leador_msgs::ImuMsg &msg)
 {
     IMU_D imu;
     msgToImu(msg, &imu);
-    
+
     //save data to file
     if(SaveImuFp !=NULL)
     {
         fwrite(&imu, sizeof(imu), 1, SaveImuFp);
         fflush(SaveImuFp);
     }
-    
+
     Recive_imu_cun++;
     if(Recive_imu_cun%125 !=0)
-    return;
+        return;
     printf("imu:%d\n", Recive_imu_cun);
 
     //==========================
@@ -95,7 +97,7 @@ void naviCallback(const leador_msgs::NaviMsg &msg)
 
     Recive_navi_cun ++;
     if(Recive_navi_cun%125 !=0)
-    return;
+        return;
     printf("navi:%d\n",Recive_navi_cun);
     //==========================
     printf("navi.hengGunJiao=%d\n",navi.hengGunJiao);
@@ -128,7 +130,67 @@ void naviCallback(const leador_msgs::NaviMsg &msg)
     }
     printf("\n");
 }
+//==========================================
+//just for save GPS if need
+static char gps_tty_file[64];
+static FILE * gps_save_fp = NULL;
+static void *tty_receive_gps_pthread(void *arg)
+{
+    int i = 0;
+    int selectRet, UartReadLen=0;
+    int ttyFp =0;
+    fd_set _readFdsr;
+    struct timeval _tv;
+    _tv.tv_sec = 0;
+    _tv.tv_usec = 1000;
 
+    char UartReadContent[12500];
+    memset(UartReadContent, 0, sizeof(UartReadContent));
+
+    ttyFp = uart_init(gps_tty_file, 9600, 8, 0, 1);
+
+    if (ttyFp <= 0)
+    {
+        printf("open gps:%s fail\n", gps_tty_file);
+        return (void *)0;
+    }
+    printf("start saving gps\n");;
+
+    while(1)
+    {
+        FD_ZERO(&_readFdsr);
+        FD_SET(ttyFp, &_readFdsr);
+
+        selectRet = select(ttyFp + 1, &_readFdsr, NULL, NULL, &_tv);
+        if(selectRet > 0)
+        {
+            if(FD_ISSET(ttyFp, &_readFdsr))
+            {
+                UartReadLen = read(ttyFp, UartReadContent, sizeof(UartReadContent));
+                //printf("\n tty:%s recive len:: %d\n",ttyOpt->ttyPath, UartReadLen);
+#if 0
+                for(i = 0; i < UartReadLen; i++)
+                {
+                    printf("0x%x ", UartReadContent[i]);
+                    if(i % 9 == 8)
+                        printf("\n");
+                }
+                printf("\n");
+#endif
+                if(gps_save_fp !=NULL)
+                {
+                    fwrite(UartReadContent, UartReadLen, 1, gps_save_fp);
+                    fflush(gps_save_fp);
+                }
+
+            }
+        }
+        usleep(10);
+    }
+
+    return (void *)0;
+}
+//====================================
 int main(int argc, char **argv)
 {
     /**
@@ -152,7 +214,7 @@ int main(int argc, char **argv)
 
 //============================
     char strTime[64];
-	getTime(strTime,sizeof(strTime));
+    getTime(strTime,sizeof(strTime));
     char pathBuf[64];
     memset(pathBuf, 0, sizeof(pathBuf));
     sprintf(pathBuf, "%s.imu",strTime);
@@ -170,7 +232,34 @@ int main(int argc, char **argv)
     {
         printf("create Navi file:%s fail!\n", pathBuf2);
     }
-	printf("\n save navi to %s save imu to %s\n", pathBuf2, pathBuf);
+    printf("\n save navi to %s save imu to %s\n", pathBuf2, pathBuf);
+//=============================
+//just for save gps
+    if (argc > 1)
+    {
+        memset(gps_tty_file, 0, sizeof(gps_tty_file));
+        sprintf(gps_tty_file, "%s", argv[1]);
+        printf("need saving gps to file : %s", gps_tty_file);
+
+        char pathBuf3[64];
+        memset(pathBuf3, 0, sizeof(pathBuf3));
+        sprintf(pathBuf3, "%s.gps",strTime);
+        gps_save_fp = fopen(pathBuf3, "w");
+        if (gps_save_fp == NULL)
+        {
+            printf("create GPS file:%s fail!\n", pathBuf3);
+        }
+        else
+        {
+            pthread_t tty_gps_tid;
+            printf("\n save gps to %s\n", pathBuf3);
+            if (pthread_create(&tty_gps_tid, NULL, tty_receive_gps_pthread,NULL))
+            {
+                printf("%s--%d, tty_receive_gps_pthread create error!\n", __FILE__, __LINE__);
+            }
+        }
+    }
+
 //=============================
     /**
      * The subscribe() call is how you tell ROS that you want to receive messages

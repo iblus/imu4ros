@@ -13,8 +13,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(${PROJECT_NAME}_listener_node listener.cpp)
-target_link_libraries(${PROJECT_NAME}_listener_node ${catkin_LIBRARIES})
+add_executable(${PROJECT_NAME}_listener_node listener.cpp uart.cpp)
+target_link_libraries(${PROJECT_NAME}_listener_node ${catkin_LIBRARIES} pthread)
 set_target_properties(${PROJECT_NAME}_listener_node PROPERTIES OUTPUT_NAME listener_node PREFIX "")
 
 install(TARGETS ${PROJECT_NAME}_listener_node
